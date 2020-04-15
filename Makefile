@@ -70,16 +70,3 @@ build: deps
 	@mkdir -p $(DESTDIR)
 	@mkdir -p $(DESTDIR)$(BINPATH)
 	go build -o $(DESTDIR)$(BINPATH)$(PKGNAME) ./main.go
-
-# Docker build
-docker-build:
-	docker build -t ollieparsley/twitter-api-metrics:$(VERSION) -t ollieparsley/twitter-api-metrics:latest -f Dockerfile .
-
-# Docker login
-docker-login:
-	@docker login -u $(DOCKER_USERNAME) -p $(DOCKER_PASSWORD)
-
-# Docker publish
-docker-publish:
-	docker push ollieparsley/twitter-api-metrics:$(VERSION)
-	docker push ollieparsley/twitter-api-metrics:latest

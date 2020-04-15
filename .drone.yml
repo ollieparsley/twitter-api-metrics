@@ -15,6 +15,11 @@ steps:
       GO111MODULE: on
       GOPATH: /drone
 
+  - name: docker-tags
+    image: golang:1.14.1
+    commands:
+      - make docker-tags
+
   - name: deps
     image: golang:1.14.1
     commands:
@@ -45,26 +50,37 @@ steps:
     depends_on:
       - deps
 
-  - name: docker-build
-    image: docker:latest
-    commands:
-      - export BUILD_VERSION="$(cat ./VERSION)"
-      - docker build -t ollieparsley/twitter-api-metrics:$BUILD_VERSION -t ollieparsley/twitter-api-metrics:latest -f Dockerfile .
+  - name: docker-dr
+    image: plugins/docker
+    settings:
+      repo: ollieparsley/twitter-api-metrics
+      dockerfile: Dockerfile
+      username: ollieparsley
+      password:
+        from_secret: DOCKER_PASSWORD
+    when:
+      event:
+        - push
+      branch:
+        exclude:
+          - master
     depends_on:
       - build
       - test
 
-  - name: docker-publish
-    image: docker:latest
-    commands:
-      - export BUILD_VERSION="$(cat ./VERSION)"
-      - docker login -u ollieparsley -p $DOCKER_PASSWORD
-      - docker push ollieparsley/twitter-api-metrics:$BUILD_VERSION
-      - docker push ollieparsley/twitter-api-metrics:latest
-    depends_on:
-      - docker-build
+  - name: docker
+    image: plugins/docker
+    settings:
+      repo: ollieparsley/twitter-api-metrics
+      dockerfile: Dockerfile
+      username: ollieparsley
+      password:
+        from_secret: DOCKER_PASSWORD
     when:
       event:
         - push
       branch:
         - master
+    depends_on:
+      - build
+      - test

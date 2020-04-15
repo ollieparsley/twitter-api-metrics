@@ -70,3 +70,7 @@ build: deps
 	@mkdir -p $(DESTDIR)
 	@mkdir -p $(DESTDIR)$(BINPATH)
 	go build -o $(DESTDIR)$(BINPATH)$(PKGNAME) ./main.go
+
+# Docker tags
+docker-tags:
+	echo "latest,$(VERSION)" > .tags

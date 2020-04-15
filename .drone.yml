@@ -47,9 +47,6 @@ steps:
 
   - name: docker-build
     image: docker:latest
-    volumes:
-      - name: docker_sock
-        path: /var/run/docker.sock
     commands:
       - export BUILD_VERSION="$(cat ./VERSION)"
       - docker build -t ollieparsley/twitter-api-metrics:$BUILD_VERSION -t ollieparsley/twitter-api-metrics:latest -f Dockerfile .
@@ -71,8 +68,3 @@ steps:
         - push
       branch:
         - master
-
-volumes:
-  - name: docker_sock
-    host:
-      path: /var/run/docker.sock

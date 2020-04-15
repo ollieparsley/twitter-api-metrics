@@ -1,0 +1,76 @@
+---
+kind: pipeline
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+
+steps:
+  - name: version
+    image: golang:1.14.1
+    commands:
+      - go version
+      - make version
+
+  - name: deps
+    image: golang:1.14.1
+    commands:
+      - make deps
+    environment:
+      GO111MODULE: on
+      GOPATH: /drone
+    depends_on:
+      - version
+
+  - name: build
+    image: golang:1.14.1
+    commands:
+      - make build
+    environment:
+      GO111MODULE: on
+      GOPATH: /drone
+    depends_on:
+      - deps
+
+  - name: test
+    image: golang:1.14.1
+    commands:
+      - make test
+    environment:
+      GO111MODULE: on
+      GOPATH: /drone
+    depends_on:
+      - deps
+
+  - name: docker-build
+    image: golang:1.14.1
+    commands:
+      - make docker-build
+    environment:
+      GO111MODULE: on
+      GOPATH: /drone
+    depends_on:
+      - build
+      - test
+
+  - name: docker-publish
+    image: golang:1.14.1
+    commands:
+      - make docker-login
+      - make docker-publish
+    environment:
+      GO111MODULE: on
+      GOPATH: /drone
+    depends_on:
+      - docker-build
+    when:
+      event:
+        - push
+      branch:
+        - master

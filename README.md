@@ -4,6 +4,8 @@ Monitor your Twitter API usage using app auth and outputting to prometheus. This
 - Rate limit for each Twitter API endpoint for your app
 - Remaining requests for each Twitter API endpoint for your app
 
+[![Build Status](https://cloud.drone.io/api/badges/ollieparsley/twitter-api-metrics/status.svg)](https://cloud.drone.io/ollieparsley/twitter-api-metrics)
+
 ## Usage
 
 ### Docker

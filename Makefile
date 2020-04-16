@@ -33,10 +33,6 @@ DOCKER_PASSWORD?=not_this_password
 # Environment variable exports
 export GO111MODULE=on
 
-# Chart packaging
-version:
-	echo $(VERSION) > VERSION
-
 # Init
 init:
 	go mod init

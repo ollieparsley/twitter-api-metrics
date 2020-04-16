@@ -19,8 +19,6 @@ steps:
     environment:
       GO111MODULE: on
       GOPATH: /drone
-    depends_on:
-      - version
 
   - name: build
     image: golang:1.14.1

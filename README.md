@@ -22,7 +22,7 @@ To allow you to customise the service we have a number of environment variables 
 
 | Name                                   | Default  | Description                                                                                             |
 |----------------------------------------|--------------------------|-----------------------------------------------------------------------------------------|
-| `TWITTER_API_METRICS_HTTP_HOST`        | `9100`                   | The HTTP port that you will need to expose if running in docker                         |
+| `TWITTER_API_METRICS_HTTP_PORT`        | `9100`                   | The HTTP port that you will need to expose if running in docker                         |
 | `TWITTER_API_METRICS_HTTP_PATH`        | `/metrics`               | The HTTP endpoint to to expose prometheus metrics on                                    |
 | `TWITTER_API_METRICS_API_KEY`          | `Required`               | The Twitter app API Key (sometimes called consumer key)                                 |
 | `TWITTER_API_METRICS_API_SECRET_KEY`   | `Required`               | The Twitter app API Secret Key (sometimes called consumer secret)                       |

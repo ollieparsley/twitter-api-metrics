@@ -98,13 +98,30 @@ func main() {
 			l.Println("Fetching rate limit information")
 
 			// Fetch rate limits
-			rateLimits, _, err := client.RateLimits.Status(&twitter.RateLimitParams{Resources: []string{}})
+			rateLimits, resp, err := client.RateLimits.Status(&twitter.RateLimitParams{Resources: []string{}})
+			if resp != nil && resp.StatusCode == 429 {
+				l.Printf("Hit rate limit when getting rate limits (ironic huh?). Sleeping until reset time: %s", err.Error())
+				resetTimeString := resp.Header.Get("X-Rate-Limit-Reset")
+				resetTime := time.Now().Add(15 * time.Minute)
+				if resetTimeString != "" {
+					i, err := strconv.ParseInt(resetTimeString, 10, 64)
+					if err != nil {
+						l.Printf("X-Rate-Limit-Reset header was not a valid integer: %s error: %s", resetTimeString, err.Error())
+					}
+					resetTime = time.Unix(i, 0)
+				}
+
+				l.Printf("Sleeping until rate limit reset at %s", resetTime.Format(time.RFC1123Z))
+				time.Sleep(resetTime.Sub(time.Now()))
+				continue
+			}
 			if err != nil {
-				l.Printf("Error getting rate limits: %s", err.Error())
-				os.Exit(1)
+				l.Printf("Error getting rate limits. Sleeping until next check: %s", err.Error())
+				time.Sleep(time.Duration(intervalSecondsInt) * time.Second)
+				continue
 			}
 
-			l.Println("Fetchied rate limit information")
+			l.Println("Finished fetching rate limit information")
 
 			resourcesReflected := reflect.ValueOf(rateLimits.Resources)
 			resourcesReflectedIndirect := reflect.Indirect(resourcesReflected)

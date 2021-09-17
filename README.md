@@ -29,6 +29,7 @@ To allow you to customise the service we have a number of environment variables 
 | `TWITTER_API_METRICS_INTERVAL_SECONDS` | `10`                     | The interval used to refresh the twitter api rate limit metrics                         |
 | `TWITTER_API_METRICS_METRICS_PREFIX`   | `twitter_api_ratelimits` | The prefix for the prometheus metrics names                                             |
 | `TWITTER_API_METRICS_NAME`             | `default`                | A name to put into prometheus metric keys to help identify, if using multiple instances |
+| `TWITTER_API_METRICS_LOG_LEVEL`        | `INFO`                   | Set the log level, defaults to INFO                                                     |
 
 ## Prometheus output
 

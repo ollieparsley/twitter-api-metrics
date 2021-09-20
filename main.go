@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"reflect"
@@ -13,11 +12,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
 
-var l *log.Logger = log.New(os.Stdout, "[twitter-api-metrics] ", 2)
+var logger *logrus.Logger = logrus.New()
 
 // getEnv Get an env vairable and set a default
 func getEnv(key, fallback string) string {
@@ -28,7 +28,15 @@ func getEnv(key, fallback string) string {
 }
 
 func main() {
-	l.Println("Starting service")
+	// Setup the logger
+	logLevel, err := logrus.ParseLevel(getEnv("LOG_LEVEL", "INFO"))
+	if err != nil {
+		logLevel = logrus.InfoLevel
+	}
+
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetOutput(os.Stdout)
+	logger.SetLevel(logLevel)
 
 	// Fetch env variables with defaults
 	name := getEnv("NAME", "default")
@@ -40,7 +48,7 @@ func main() {
 	intervalSeconds := getEnv("INTERVAL_SECONDS", "10")
 	intervalSecondsInt, err := strconv.Atoi(intervalSeconds)
 	if err != nil {
-		l.Printf("Error converting interval: %s", err.Error())
+		logger.Errorf("Error converting interval: %s", err.Error())
 		os.Exit(1)
 	}
 
@@ -95,33 +103,33 @@ func main() {
 			// Show that we're making a request
 			counter.Inc()
 
-			l.Println("Fetching rate limit information")
+			logger.Debug("Fetching rate limit information")
 
 			// Fetch rate limits
 			rateLimits, resp, err := client.RateLimits.Status(&twitter.RateLimitParams{Resources: []string{}})
 			if resp != nil && resp.StatusCode == 429 {
-				l.Printf("Hit rate limit when getting rate limits (ironic huh?). Sleeping until reset time: %s", err.Error())
+				logger.Errorf("Hit rate limit when getting rate limits (ironic huh?). Sleeping until reset time: %s", err.Error())
 				resetTimeString := resp.Header.Get("X-Rate-Limit-Reset")
 				resetTime := time.Now().Add(15 * time.Minute)
 				if resetTimeString != "" {
 					i, err := strconv.ParseInt(resetTimeString, 10, 64)
 					if err != nil {
-						l.Printf("X-Rate-Limit-Reset header was not a valid integer: %s error: %s", resetTimeString, err.Error())
+						logger.Errorf("X-Rate-Limit-Reset header was not a valid integer: %s error: %s", resetTimeString, err.Error())
 					}
 					resetTime = time.Unix(i, 0)
 				}
 
-				l.Printf("Sleeping until rate limit reset at %s", resetTime.Format(time.RFC1123Z))
+				logger.Debugf("Sleeping until rate limit reset at %s", resetTime.Format(time.RFC1123Z))
 				time.Sleep(resetTime.Sub(time.Now()))
 				continue
 			}
 			if err != nil {
-				l.Printf("Error getting rate limits. Sleeping until next check: %s", err.Error())
+				logger.Errorf("Error getting rate limits. Sleeping until next check: %s", err.Error())
 				time.Sleep(time.Duration(intervalSecondsInt) * time.Second)
 				continue
 			}
 
-			l.Println("Finished fetching rate limit information")
+			logger.Debug("Finished fetching rate limit information")
 
 			resourcesReflected := reflect.ValueOf(rateLimits.Resources)
 			resourcesReflectedIndirect := reflect.Indirect(resourcesReflected)
@@ -162,8 +170,8 @@ func main() {
 				}
 			}
 
-			l.Println("Updated metrics")
-			l.Printf("Waiting %d seconds until the next fetch time", intervalSecondsInt)
+			logger.Debug("Updated metrics")
+			logger.Debugf("Waiting %d seconds until the next fetch time", intervalSecondsInt)
 
 			// Wait for the next time period
 			time.Sleep(time.Duration(intervalSecondsInt) * time.Second)
@@ -171,8 +179,7 @@ func main() {
 	}()
 
 	// Set up the HTTP handler and block
-	addr := ":" + httpPort
-	l.Printf("Setting up http service %s/%s", addr, httpPath)
+	logger.Infof("Listening for HTTP requests at: 0.0.0.0:%v", httpPort)
 	http.Handle("/"+httpPath, promhttp.Handler())
-	http.ListenAndServe(addr, nil)
+	http.ListenAndServe(":"+httpPort, nil)
 }

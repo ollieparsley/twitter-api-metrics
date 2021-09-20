@@ -135,4 +135,4 @@ Current we only support Twitter app auth, not user auth. Please add an issue if 
 
 ## Contributions
 
-To contribute please submit a PR and ensure you run `make qa` before submitting
+To contribute please submit a PR and ensure you run `make qa` before submitting to ensure tests are passing and the builds are working

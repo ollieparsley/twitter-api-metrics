@@ -1,4 +1,7 @@
 # Twitter API Metrics
+
+## This repo is archived snd no longer maintained
+
 Monitor your Twitter API usage using app auth and outputting to prometheus. This is done by calling the Twitter API on a regular interval and updating the prometheus metrics. The Twitter API endpoint `application/rate_limit_status`. A metric key is created for following:
 
 - Rate limit for each Twitter API endpoint for your app
